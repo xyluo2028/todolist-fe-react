@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import ProjectList from '../components/ProjectList';
 import { api } from '../api';
 
 function Projects() {
@@ -9,25 +8,35 @@ function Projects() {
 
   // useCallback for fetchProjects to call it on demand
   const fetchProjects = useCallback(async () => {
-    if (!auth) return; // Should be handled by ProtectedRoute
+    if (!auth) return;
     try {
       const res = await api.getProjects(auth);
-      console.log('projects payload:', res.data);
-      const list = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.projects)
-        ? res.data.projects
-        : [];
+      console.log('raw projects payload:', res.data);
+
+      // normalize whatever shape comes back
+      let data = res.data;
+      console.log('typeof data:', typeof data);
+      let list = data.split('\n')              // Split the string into an array by newlines
+                       .map(s => s.trim())     // Remove whitespace from start/end of each line
+                       .filter(Boolean);
+      console.log('parsed project list:', list);
+
       setProjects(list);
+      console.log('Projects loaded:', projects);
     } catch (err) {
       console.error('Failed loading projects:', err);
       setProjects([]);
     }
-  }, [auth]); // Depends on auth
+  }, [auth]);
+
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]); // Call fetchProjects when it (or its dependencies like auth) changes
+
+  useEffect(() => {
+    console.log('Projects loaded (from effect):', projects)
+  }, [projects])
 
   const handleCreateProject = async (e) => {
     e.preventDefault(); // Prevent default form submission
@@ -72,8 +81,25 @@ function Projects() {
           Create Project
         </button>
       </form>
-
-      <ProjectList projects={projects} />
+      {/* Add a button to manually fetch projects */}
+      <button
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        onClick={fetchProjects}
+      >
+        Refresh Projects
+      </button>
+      {console.log('projects state:', projects)}
+      {/* ← Add this block to actually render the list */}
+      <ul className="space-y-2">
+        {projects.length === 0
+          ? <li className="text-gray-500">No projects found</li>
+          : projects.map(p => (
+              <li key={p.id || p.name} className="p-2 border rounded">
+                {p.name || JSON.stringify(p)}
+              </li>
+            ))
+        }
+      </ul>
     </div>
   );
 }

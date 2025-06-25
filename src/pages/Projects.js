@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import ProjectList from '../components/ProjectList';
 import { api } from '../api';
 
 function Projects() {
@@ -12,11 +13,8 @@ function Projects() {
     try {
       const res = await api.getProjects(auth);
       console.log('raw projects payload:', res.data);
-
-      // normalize whatever shape comes back
-      let data = res.data;
-      console.log('typeof data:', typeof data);
-      let list = data.split('\n')              // Split the string into an array by newlines
+      
+      let list = res.data.split('\n')              // Split the string into an array by newlines
                        .map(s => s.trim())     // Remove whitespace from start/end of each line
                        .filter(Boolean);
       console.log('parsed project list:', list);
@@ -88,18 +86,12 @@ function Projects() {
       >
         Refresh Projects
       </button>
-      {console.log('projects state:', projects)}
       {/* ← Add this block to actually render the list */}
-      <ul className="space-y-2">
-        {projects.length === 0
-          ? <li className="text-gray-500">No projects found</li>
-          : projects.map(p => (
-              <li key={p.id || p.name} className="p-2 border rounded">
-                {p.name || JSON.stringify(p)}
-              </li>
-            ))
-        }
-      </ul>
+      {projects.length > 0 ? (
+        <ProjectList projects={projects} />
+      ) : (
+        <p className="text-gray-500">No projects found</p>
+      )}
     </div>
   );
 }

@@ -8,18 +8,16 @@ function Tasks() {
   const auth = useMemo(() => JSON.parse(sessionStorage.getItem('auth')), []);
   const [tasks, setTasks] = useState([]);
 
-  const loadTasks = useCallback(async (newTask, key, action) => {
+   const loadTasks = useCallback(async (newTask, key, action) => {
     try {
       if (!projectName) {
-        // If no project is selected, don't attempt to modify or load tasks.
         if (newTask || action) {
           console.warn("Cannot perform task operations without a project selected.");
         }
-        setTasks([]); // Ensure tasks list is empty
+        setTasks([]);
         return;
       }
 
-      // Proceed with existing logic if projectName is available
       if (action === 'complete') {
         await api.completeTask(projectName, key, auth);
       } else if (action === 'remove') {
@@ -28,10 +26,39 @@ function Tasks() {
         await api.writeTask(projectName, newTask, auth);
       }
       const res = await api.getTasks(projectName, auth);
-      setTasks(res.data || []); // Ensure tasks is an array
+
+      let data = res.data;
+      console.log('raw tasks payload:', data);
+      console.log('data type:', typeof data);
+      let list;
+
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data);
+          console.log('Parsed JSON data:', data);
+        } catch {
+          // Not JSON, treat as newline-separated
+          console.warn('Data is not valid JSON, treating as newline-separated string');
+          list = data.split('\n').map(s => s.trim()).filter(Boolean).map((content, idx) => ({
+            id: idx,
+            content,
+            due: new Date().toISOString(),
+            priority: 1,
+            completed: false
+          }));
+          setTasks(list);
+          console.log('Parsed tasks from string:', list);
+          return;
+        }
+      }
+
+      // If data is an array, use it directly; otherwise, fallback to empty array
+      list = Array.isArray(data) ? data : [];
+      console.log('Parsed tasks from string:', list);
+      setTasks(list);
     } catch (error) {
       console.error('Failed to process tasks:', error);
-      setTasks([]); // Set to empty array or handle error state
+      setTasks([]);
     }
   }, [projectName, auth]);
 

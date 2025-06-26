@@ -27,6 +27,18 @@ function Projects() {
     }
   }, [auth]);
 
+  const handleRemoveProject = async (projectName) => {
+    if (!window.confirm(`Are you sure you want to delete project "${projectName}"?`)) {
+      return;
+    }
+    try {
+      await api.removeProject(projectName, auth);
+      fetchProjects(); // Refresh the list after deletion
+    } catch (err) {
+      console.error('Failed to remove project:', err);
+      alert('Failed to remove project.');
+    }
+  };
 
   useEffect(() => {
     fetchProjects();
@@ -88,7 +100,7 @@ function Projects() {
       </button>
       {/* ← Add this block to actually render the list */}
       {projects.length > 0 ? (
-        <ProjectList projects={projects} />
+        <ProjectList projects={projects} onRemove={handleRemoveProject}/>
       ) : (
         <p className="text-gray-500">No projects found</p>
       )}

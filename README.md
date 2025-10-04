@@ -1,56 +1,47 @@
-# React Hello World
+# Todolist React Frontend
 
-This is a simple React application that displays a "Hello, World!" message.
+This project provides the React client used to interact with the [Todo List backend](https://github.com/xyluo2028/todolist). It offers registration, authentication, project management, and task tracking features backed by the Go API.
 
-## Project Structure
-
-```
-react-helloworld
-├── public
-│   └── index.html
-├── src
-│   ├── App.js
-│   └── index.js
-├── package.json
-└── README.md
-```
+## Prerequisites
+- Node.js 18+
+- npm 8+
+- A running instance of the backend API (defaults to `http://localhost:7071`).
 
 ## Getting Started
-
-To set up and run this application, follow these steps:
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone <repository-url>
-   cd react-helloworld
-   ```
-
-2. **Install dependencies:**
-
-   Make sure you have Node.js installed. Then run:
-
+1. **Install dependencies**
    ```bash
    npm install
    ```
-
-3. **Run the application:**
-
-   Start the development server with:
-
+2. **Run the development server**
    ```bash
    npm start
    ```
+   The app is served at `http://localhost:3000` and proxies requests directly to the backend URL configured in `src/api/index.js`.
 
-4. **Open your browser:**
+3. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-   Navigate to `http://localhost:3000` to see the application in action.
+## Configuring the API URL
+The frontend currently targets `http://localhost:7071`. If your backend runs elsewhere, update the `baseURL` in `src/api/index.js` to match your environment.
 
-## Built With
+## Authentication Flow
+- Register a user via the **Register** tab under `/auth`.
+- After successful registration you are redirected to the **Login** tab.
+- Logging in stores credentials for the current browser session and unlocks protected routes such as `/projects` and project task views.
 
-- [React](https://reactjs.org/) - A JavaScript library for building user interfaces
-- [ReactDOM](https://reactjs.org/docs/react-dom.html) - Provides DOM-specific methods that can be used at the top level of your app
+## Project Structure
+```
+src/
+├── api/           # Axios client wrapper for backend API calls
+├── components/    # Reusable UI components
+├── pages/         # Route-level components
+└── index.js       # App bootstrap
+```
 
-## License
+## Related Repositories
+- Backend service: https://github.com/xyluo2028/todolist
 
-This project is licensed under the MIT License.
+## Contributing
+Pull requests are welcome. Please run the existing lint/build scripts before submitting changes.

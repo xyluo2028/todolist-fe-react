@@ -1,16 +1,20 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom'; // Added Link
+import { useParams, Link } from 'react-router-dom';
 import TaskList from '../components/TaskList';
 import { api } from '../api';
 
 function Tasks() {
   const { projectName } = useParams();
+  const decodedProjectName = useMemo(
+    () => (projectName ? decodeURIComponent(projectName) : ''),
+    [projectName]
+  );
   const auth = useMemo(() => JSON.parse(sessionStorage.getItem('auth')), []);
   const [tasks, setTasks] = useState([]);
 
-   const loadTasks = useCallback(async (newTask, key, action) => {
+  const loadTasks = useCallback(async (newTask, key, action) => {
     try {
-      if (!projectName) {
+      if (!decodedProjectName) {
         if (newTask || action) {
           console.warn("Cannot perform task operations without a project selected.");
         }
@@ -19,66 +23,69 @@ function Tasks() {
       }
 
       if (action === 'complete') {
-        await api.completeTask(projectName, key, auth);
+        await api.completeTask(decodedProjectName, key, auth);
       } else if (action === 'remove') {
-        await api.removeTask(projectName, key, auth);
+        await api.removeTask(decodedProjectName, key, auth);
       } else if (newTask) {
-        await api.writeTask(projectName, newTask, auth);
+        await api.writeTask(decodedProjectName, newTask, auth);
       }
-      const res = await api.getTasks(projectName, auth);
+      const res = await api.getTasks(decodedProjectName, auth);
 
       let data = res.data;
-      console.log('raw tasks payload:', data);
-      console.log('data type:', typeof data);
-      let list;
 
-      if (typeof data === 'string') {
-        try {
-          data = JSON.parse(data);
-          console.log('Parsed JSON data:', data);
-        } catch {
-          // Not JSON, treat as newline-separated
-          console.warn('Data is not valid JSON, treating as newline-separated string');
-          list = data.split('\n').map(s => s.trim()).filter(Boolean).map((content, idx) => ({
-            id: idx,
-            content,
-            due: new Date().toISOString(),
-            priority: 1,
-            completed: false
-          }));
-          setTasks(list);
-          console.log('Parsed tasks from string:', list);
-          return;
+      let list = [];
+
+      if (Array.isArray(data)) {
+        list = data;
+      } else if (typeof data === 'string') {
+        const trimmed = data.trim();
+        if (trimmed && trimmed.toLowerCase() !== 'no tasks found!') {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+              list = parsed;
+            }
+          } catch (jsonErr) {
+            console.warn('Unexpected string payload for tasks; falling back to empty list', jsonErr);
+          }
         }
       }
 
-      // If data is an array, use it directly; otherwise, fallback to empty array
-      list = Array.isArray(data) ? data : [];
-      console.log('Parsed tasks from string:', list);
       setTasks(list);
     } catch (error) {
       console.error('Failed to process tasks:', error);
       setTasks([]);
     }
-  }, [projectName, auth]);
+  }, [decodedProjectName, auth]);
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
 
+  const subtitle = decodedProjectName
+    ? 'Add, schedule, and complete tasks to keep this project on track.'
+    : 'Pick a project to dive into its backlog and start moving items forward.';
+
   return (
-    <div className="p-6">
-      <h2 className="text-2xl mb-4">
-        {projectName ? `Project: ${decodeURIComponent(projectName)}` : "Tasks"}
-      </h2>
-      {projectName ? (
-        <TaskList tasks={tasks} project={projectName} auth={auth} refresh={loadTasks} />
+    <section className="section-card">
+      <div className="section-header">
+        <h2 className="section-title">
+          {decodedProjectName ? `Project · ${decodedProjectName}` : 'Tasks overview'}
+        </h2>
+        <p className="section-subtitle">{subtitle}</p>
+      </div>
+
+      {decodedProjectName ? (
+        <TaskList tasks={tasks} project={decodedProjectName} refresh={loadTasks} />
       ) : (
-        <p>
-          Please select a project from the <Link to="/projects" className="text-blue-500 hover:underline">Projects page</Link> to view and manage tasks.
-        </p>
+        <div className="empty-state">
+          <p>Choose a project to see its tasks and start moving work forward.</p>
+          <Link to="/projects" className="btn btn--primary">
+            Browse projects
+          </Link>
+        </div>
       )}
-    </div>
+    </section>
   );
 }
 

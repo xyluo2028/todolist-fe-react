@@ -12,15 +12,23 @@ function Projects() {
     if (!auth) return;
     try {
       const res = await api.getProjects(auth);
-      console.log('raw projects payload:', res.data);
-      
-      let list = res.data.split('\n')              // Split the string into an array by newlines
-                       .map(s => s.trim())     // Remove whitespace from start/end of each line
-                       .filter(Boolean);
-      console.log('parsed project list:', list);
+      const payload = res.data;
+      let list = [];
+
+      if (Array.isArray(payload)) {
+        list = payload;
+      } else if (typeof payload === 'string') {
+        const trimmed = payload.trim();
+        if (trimmed && trimmed.toLowerCase() !== 'no projects found!') {
+          list = trimmed
+            .split('\n')
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .filter((item) => item.toLowerCase() !== 'no projects found!');
+        }
+      }
 
       setProjects(list);
-      console.log('Projects loaded:', projects);
     } catch (err) {
       console.error('Failed loading projects:', err);
       setProjects([]);
@@ -28,6 +36,10 @@ function Projects() {
   }, [auth]);
 
   const handleRemoveProject = async (projectName) => {
+    if (!auth || !auth.username || !auth.password) {
+      alert('You must be signed in to remove a project.');
+      return;
+    }
     if (!window.confirm(`Are you sure you want to delete project "${projectName}"?`)) {
       return;
     }
@@ -43,10 +55,6 @@ function Projects() {
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]); // Call fetchProjects when it (or its dependencies like auth) changes
-
-  useEffect(() => {
-    console.log('Projects loaded (from effect):', projects)
-  }, [projects])
 
   const handleCreateProject = async (e) => {
     e.preventDefault(); // Prevent default form submission
@@ -72,39 +80,45 @@ function Projects() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl mb-4">Your Projects</h2>
+    <section className="section-card">
+      <div className="section-header">
+        <h2 className="section-title">Projects</h2>
+        <p className="section-subtitle">
+          Group work by initiative, team, or area of your life so every task has a home.
+        </p>
+      </div>
 
-      {/* Form to create a new project */}
-      <form onSubmit={handleCreateProject} className="mb-6 flex space-x-2">
+      <form onSubmit={handleCreateProject} className="project-form">
         <input
           type="text"
           value={newProjectName}
           onChange={(e) => setNewProjectName(e.target.value)}
-          placeholder="Enter new project name"
-          className="border p-2 rounded flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Name your next project"
         />
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
-          Create Project
+        <button type="submit" className="btn btn--primary">
+          Create project
         </button>
       </form>
-      {/* Add a button to manually fetch projects */}
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        onClick={fetchProjects}
-      >
-        Refresh Projects
-      </button>
-      {/* ← Add this block to actually render the list */}
+
+      <div className="refresh-row">
+        <span className="section-subtitle">
+          {projects.length > 0
+            ? `You are tracking ${projects.length} ${projects.length === 1 ? 'project' : 'projects'}.`
+            : 'No projects yet — let’s make your first one!'}
+        </span>
+        <button type="button" className="btn btn--ghost" onClick={fetchProjects}>
+          Refresh list
+        </button>
+      </div>
+
       {projects.length > 0 ? (
-        <ProjectList projects={projects} onRemove={handleRemoveProject}/>
+        <ProjectList projects={projects} onRemove={handleRemoveProject} />
       ) : (
-        <p className="text-gray-500">No projects found</p>
+        <div className="empty-state">
+          Add a project to begin grouping related tasks and tracking deadlines together.
+        </div>
       )}
-    </div>
+    </section>
   );
 }
 

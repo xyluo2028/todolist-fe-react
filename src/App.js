@@ -1,57 +1,76 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
-import Login from './components/Login';
-import Register from './components/Register';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 
 const ProtectedRoute = ({ children }) => {
   const auth = JSON.parse(sessionStorage.getItem('auth'));
-  return auth ? children : <Navigate to="/login" replace />;
+  return auth ? children : <Navigate to="/auth?mode=login" replace />;
 };
 
 function App() {
-  return (
-    <div className="p-6">
-      <nav className="mb-6 space-x-8">
-        <Link to="/" className="mr-10">Home     </Link>
-        <Link to="/auth" className="mr-6">Login/Register  </Link>
-        <Link to="/projects" className="mr-6"> Projects </Link>
-        <Link to="/tasks" className="mr-6"> Tasks </Link> {/* Changed /Tasks to /tasks */}
-      </nav>
+  const navItems = [
+    { label: 'Home', to: '/', end: true },
+    { label: 'Auth', to: '/auth' },
+    { label: 'Projects', to: '/projects' },
+    { label: 'Tasks', to: '/tasks' },
+  ];
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<Auth />} />
-        {/* Protected Routes */}
-        <Route
-          path="/projects"
-          element={
-            <ProtectedRoute>
-              <Projects />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/:projectName" // For specific project tasks
-          element={
-            <ProtectedRoute>
-              <Tasks />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tasks" /* New route for general tasks access */
-          element={
-            <ProtectedRoute>
-              <Tasks />
-            </ProtectedRoute>
-          }
-        />
-        {/* catch‐all redirect back to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+  return (
+    <div className="app-shell">
+      <header className="app-nav">
+        <div className="app-nav__brand">
+          <span className="app-nav__spark" />
+          TaskFlow
+        </div>
+        <nav className="app-nav__links">
+          {navItems.map(({ label, to, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `app-nav__link${isActive ? ' app-nav__link--active' : ''}`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
+
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectName"
+            element={
+              <ProtectedRoute>
+                <Tasks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <Tasks />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </div>
   );
 }

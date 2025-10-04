@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import TaskItem from './TaskItem';
 
-function TaskList({ tasks, project, auth, refresh }) {
+function TaskList({ tasks, project, refresh }) {
   const [content, setContent] = useState('');
   const [due, setDue] = useState('');
   const [priority, setPriority] = useState(1);
 
   const addTask = async () => {
-    if (!content || !due) return;
+    if (!content || !due) {
+      alert('Please provide a task description and due date.');
+      return;
+    }
     await refresh({
       content,
       due: new Date(due).toISOString(),
       priority: parseInt(priority, 10),
-      completed: false
+      completed: false,
     });
     setContent('');
     setDue('');
@@ -28,28 +31,55 @@ function TaskList({ tasks, project, auth, refresh }) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex space-x-2">
-        <input
-          className="flex-1 p-2 border rounded"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="New task"
-        />
-        <input
-          type="datetime-local"
-          className="p-2 border rounded"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-        />
-        <select value={priority} onChange={(e) => setPriority(e.target.value)} className="p-2 border rounded">
-          {[1,2,3,4,5].map((n) => <option key={n} value={n}>{n}</option>)}
-        </select>
-        <button onClick={addTask} className="px-4 py-2 bg-blue-500 text-white rounded">Add</button>
+    <div className="task-area">
+      <div className="task-header">
+        <form
+          className="task-inputs"
+          onSubmit={(event) => {
+            event.preventDefault();
+            addTask();
+          }}
+        >
+          <input
+            className="form-input"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={`Add a task to ${project}`}
+          />
+          <input
+            className="form-input"
+            type="datetime-local"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+          />
+          <select
+            className="form-select"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            {[1, 2, 3, 4, 5].map((num) => (
+              <option key={num} value={num}>
+                Priority {num}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="btn btn--primary">
+            Add task
+          </button>
+        </form>
       </div>
-      {tasks.map((t) => (
-        <TaskItem key={t.id} task={t} onComplete={onComplete} onRemove={onRemove} />
-      ))}
+
+      {tasks.length > 0 ? (
+        <div className="task-list">
+          {tasks.map((task) => (
+            <TaskItem key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} />
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state">
+          No tasks yet — capture your first idea above to get the ball rolling.
+        </div>
+      )}
     </div>
   );
 }

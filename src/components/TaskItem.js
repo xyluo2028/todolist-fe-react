@@ -1,17 +1,39 @@
 function TaskItem({ task, onComplete, onRemove }) {
+  const isCompleted = Boolean(task.completed);
+  const dueDate = task.due ? new Date(task.due) : null;
+  const dueLabel = dueDate && !Number.isNaN(dueDate.getTime())
+    ? dueDate.toLocaleString()
+    : 'No due date';
+
   return (
-    <div className="flex items-center justify-between p-2 bg-white rounded shadow">
-      <div>
-        <p className={`${task.completed ? 'line-through text-gray-500' : ''}`}>{task.content}</p>
-        <small>Due: {new Date(task.due).toLocaleString()}</small>
+    <div className={`task-card${isCompleted ? ' task-card--completed' : ''}`}>
+      <div className="task-card__info">
+        <p className={`task-card__title${isCompleted ? ' task-card__title--done' : ''}`}>
+          {task.content}
+        </p>
+        <div className="task-card__meta">
+          <span className="badge badge--due">Due · {dueLabel}</span>
+          {typeof task.priority === 'number' && (
+            <span className="badge badge--priority">Priority {task.priority}</span>
+          )}
+          {isCompleted && <span className="badge badge--done">Completed</span>}
+        </div>
       </div>
-      <div className="space-x-2">
-        {!task.completed && (
-          <button onClick={() => onComplete(task.id)} className="px-2 py-1 bg-green-500 text-white rounded">
-            Complete
+      <div className="task-card__actions">
+        {!isCompleted && (
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={() => onComplete(task.id)}
+          >
+            Mark done
           </button>
         )}
-        <button onClick={() => onRemove(task.id)} className="px-2 py-1 bg-red-500 text-white rounded">
+        <button
+          type="button"
+          className="btn btn--danger"
+          onClick={() => onRemove(task.id)}
+        >
           Delete
         </button>
       </div>

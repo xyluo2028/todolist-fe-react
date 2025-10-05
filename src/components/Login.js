@@ -1,10 +1,21 @@
 import { useState } from 'react';
-import { api } from '../api';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../api';
+
+const parseStoredAuth = () => {
+  try {
+    const stored = sessionStorage.getItem('auth');
+    return stored ? JSON.parse(stored) : null;
+  } catch (err) {
+    console.warn('Failed reading stored auth payload, ignoring it.', err);
+    return null;
+  }
+};
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [auth, setAuth] = useState(() => parseStoredAuth());
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
@@ -16,12 +27,41 @@ function Login() {
 
     try {
       await api.getProjects({ username, password });
-      sessionStorage.setItem('auth', JSON.stringify({ username, password }));
+      const payload = { username, password };
+      sessionStorage.setItem('auth', JSON.stringify(payload));
+      setAuth(payload);
       navigate('/projects');
     } catch (error) {
       alert('Login failed');
     }
   };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('auth');
+    setAuth(null);
+    setUsername('');
+    setPassword('');
+  };
+
+  if (auth) {
+    return (
+      <div className="form-body">
+        <p className="section-subtitle">You are already signed in.</p>
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={() => navigate('/projects')}
+          >
+            Go to projects
+          </button>
+          <button type="button" className="btn btn--danger" onClick={handleLogout}>
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form className="form-body" onSubmit={handleSubmit}>

@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Projects from './pages/Projects';
@@ -9,12 +10,35 @@ const ProtectedRoute = ({ children }) => {
   return auth ? children : <Navigate to="/auth?mode=login" replace />;
 };
 
+const readStoredAuth = () => {
+  try {
+    const stored = sessionStorage.getItem('auth');
+    return stored ? JSON.parse(stored) : null;
+  } catch (err) {
+    console.warn('Failed parsing stored auth credentials.', err);
+    return null;
+  }
+};
+
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [auth, setAuth] = useState(() => readStoredAuth());
+
+  useEffect(() => {
+    setAuth(readStoredAuth());
+  }, [location]);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('auth');
+    setAuth(null);
+    navigate('/auth?mode=login', { replace: true });
+  };
+
   const navItems = [
     { label: 'Home', to: '/', end: true },
     { label: 'Auth', to: '/auth' },
     { label: 'Projects', to: '/projects' },
-    { label: 'Tasks', to: '/tasks' },
   ];
 
   return (
@@ -38,6 +62,11 @@ function App() {
             </NavLink>
           ))}
         </nav>
+        {auth && (
+          <button type="button" className="btn btn--ghost" onClick={handleLogout}>
+            Sign out
+          </button>
+        )}
       </header>
 
       <main className="app-main">

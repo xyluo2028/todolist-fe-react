@@ -37,7 +37,6 @@ function App() {
 
   const navItems = [
     { label: 'Home', to: '/', end: true },
-    { label: 'Auth', to: '/auth' },
     { label: 'Projects', to: '/projects' },
   ];
 
@@ -62,11 +61,20 @@ function App() {
             </NavLink>
           ))}
         </nav>
-        {auth && (
-          <button type="button" className="btn btn--ghost" onClick={handleLogout}>
-            Sign out
-          </button>
-        )}
+        <div className="app-nav__actions">
+          {auth ? (
+            <>
+              <span className="app-nav__user">{auth.username}</span>
+              <button type="button" className="btn btn--ghost" onClick={handleLogout}>
+                Sign out
+              </button>
+            </>
+          ) : (
+            <NavLink to="/auth?mode=login" className="btn btn--ghost">
+              login in
+            </NavLink>
+          )}
+        </div>
       </header>
 
       <main className="app-main">

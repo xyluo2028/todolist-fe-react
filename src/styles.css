@@ -92,6 +92,20 @@ textarea {
   box-shadow: 0 12px 30px -20px rgba(35, 45, 95, 0.45);
 }
 
+.app-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.app-nav__user {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(84, 87, 255, 0.15);
+}
+
 .app-nav__link {
   padding: 0.55rem 1.2rem;
   border-radius: 999px;
@@ -629,6 +643,13 @@ textarea {
   .app-nav__links {
     width: 100%;
     justify-content: center;
+  }
+
+  .app-nav__actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
   }
 
   .form-card {

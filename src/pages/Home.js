@@ -1,6 +1,24 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+
+const readStoredAuth = () => {
+  try {
+    const stored = sessionStorage.getItem('auth');
+    return stored ? JSON.parse(stored) : null;
+  } catch (err) {
+    console.warn('Failed parsing stored auth credentials in Home.', err);
+    return null;
+  }
+};
 
 function Home() {
+  const location = useLocation();
+  const [auth, setAuth] = useState(() => readStoredAuth());
+
+  useEffect(() => {
+    setAuth(readStoredAuth());
+  }, [location]);
+
   return (
     <section className="hero">
       <div className="hero__content">
@@ -12,14 +30,13 @@ function Home() {
           TaskFlow keeps your to-dos structured, deadlines visible, and priorities under
           control so you can focus on meaningful work.
         </p>
-        <div className="hero__actions">
-          <Link to="/auth?mode=register" className="btn btn--primary">
-            Create an account
-          </Link>
-          <Link to="/auth?mode=login" className="btn btn--secondary">
-            Sign in
-          </Link>
-        </div>
+        {!auth && (
+          <div className="hero__actions">
+            <Link to="/auth?mode=register" className="btn btn--primary">
+              Create an account
+            </Link>
+          </div>
+        )}
 
         <div className="hero__stats">
           <div className="hero__stat">

@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
+import { api } from './api';
 
 const ProtectedRoute = ({ children }) => {
   const auth = JSON.parse(sessionStorage.getItem('auth'));
@@ -24,6 +25,7 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [auth, setAuth] = useState(() => readStoredAuth());
+  const [isDeactivating, setIsDeactivating] = useState(false);
 
   useEffect(() => {
     setAuth(readStoredAuth());
@@ -33,6 +35,30 @@ function App() {
     sessionStorage.removeItem('auth');
     setAuth(null);
     navigate('/auth?mode=login', { replace: true });
+  };
+
+  const handleDeactivate = async () => {
+    if (!auth) {
+      return;
+    }
+    const confirmed = window.confirm(
+      'Deactivate your account? This will permanently delete all projects and tasks.'
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeactivating(true);
+    try {
+      await api.deactivateAccount(auth);
+      alert('Your account has been deactivated.');
+      handleLogout();
+    } catch (error) {
+      console.error('Failed to deactivate account:', error);
+      alert('We could not deactivate your account. Please try again later.');
+    } finally {
+      setIsDeactivating(false);
+    }
   };
 
   const navItems = [
@@ -65,13 +91,21 @@ function App() {
           {auth ? (
             <>
               <span className="app-nav__user">{auth.username}</span>
+              <button
+                type="button"
+                className="btn btn--danger"
+                onClick={handleDeactivate}
+                disabled={isDeactivating}
+              >
+                {isDeactivating ? 'Deactivating...' : 'Deactivate'}
+              </button>
               <button type="button" className="btn btn--ghost" onClick={handleLogout}>
-                Sign out
+                Sign Out
               </button>
             </>
           ) : (
             <NavLink to="/auth?mode=login" className="btn btn--ghost">
-              login in
+              Log In
             </NavLink>
           )}
         </div>

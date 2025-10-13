@@ -17,6 +17,7 @@ export const api = {
     apiClient.get(`/printTasks?pjt=${encodeURIComponent(project)}`, authConfig(auth)),
   writeTask: (project, task, auth) =>
     apiClient.post(`/writeTask?pjt=${encodeURIComponent(project)}`, task, authConfig(auth)),
+  deactivateAccount: (auth) => apiClient.delete('/deactivate', authConfig(auth)),
   completeTask: (project, key, auth) =>
     apiClient.get(
       `/completeTask?pjt=${encodeURIComponent(project)}&key=${encodeURIComponent(key)}`,

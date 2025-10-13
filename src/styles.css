@@ -228,6 +228,12 @@ textarea {
   border: 1px solid transparent;
 }
 
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .btn:active {
   transform: translateY(1px);
 }
@@ -402,7 +408,8 @@ textarea {
 }
 
 .task-inputs input,
-.task-inputs select {
+.task-inputs select,
+.task-inputs textarea {
   padding: 0.8rem 0.95rem;
   border-radius: 14px;
   border: 1px solid var(--border);
@@ -411,11 +418,22 @@ textarea {
 }
 
 .task-inputs input:focus,
-.task-inputs select:focus {
+.task-inputs select:focus,
+.task-inputs textarea:focus {
   outline: none;
   border-color: rgba(84, 87, 255, 0.4);
   background: #fff;
   box-shadow: 0 0 0 4px rgba(84, 87, 255, 0.12);
+}
+
+.task-inputs textarea {
+  flex: 1 1 100%;
+  min-height: 4.6rem;
+  resize: vertical;
+}
+
+.form-input--textarea {
+  line-height: 1.45;
 }
 
 .task-list {
@@ -462,6 +480,13 @@ textarea {
 .task-card__title--done {
   text-decoration: line-through;
   color: var(--text-subtle);
+}
+
+.task-card__description {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.45;
 }
 
 .task-card__meta {

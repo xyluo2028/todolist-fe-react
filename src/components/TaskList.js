@@ -2,21 +2,45 @@ import { useState } from 'react';
 import TaskItem from './TaskItem';
 
 function TaskList({ tasks, project, refresh }) {
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [due, setDue] = useState('');
   const [priority, setPriority] = useState(1);
 
   const addTask = async () => {
-    if (!content || !due) {
-      alert('Please provide a task description and due date.');
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+
+    if (!trimmedTitle) {
+      alert('Please provide a task title.');
       return;
     }
-    await refresh({
-      content,
+    if (trimmedTitle.length > 100) {
+      alert('Task titles must be 100 characters or fewer.');
+      return;
+    }
+    if (!due) {
+      alert('Please select a due date.');
+      return;
+    }
+    if (trimmedContent.length > 1000) {
+      alert('Task details must be 1000 characters or fewer.');
+      return;
+    }
+
+    const payload = {
+      title: trimmedTitle,
       due: new Date(due).toISOString(),
       priority: parseInt(priority, 10),
       completed: false,
-    });
+    };
+
+    if (trimmedContent) {
+      payload.content = trimmedContent;
+    }
+
+    await refresh(payload);
+    setTitle('');
     setContent('');
     setDue('');
     setPriority(1);
@@ -42,9 +66,18 @@ function TaskList({ tasks, project, refresh }) {
         >
           <input
             className="form-input"
+            value={title}
+            maxLength={100}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Task title"
+          />
+          <textarea
+            className="form-input form-input--textarea"
             value={content}
+            maxLength={1000}
+            rows={3}
             onChange={(e) => setContent(e.target.value)}
-            placeholder={`Add a task to ${project}`}
+            placeholder={`Task details for ${project} (optional)`}
           />
           <input
             className="form-input"

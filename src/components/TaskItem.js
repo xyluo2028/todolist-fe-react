@@ -4,13 +4,22 @@ function TaskItem({ task, onComplete, onRemove }) {
   const dueLabel = dueDate && !Number.isNaN(dueDate.getTime())
     ? dueDate.toLocaleString()
     : 'No due date';
+  const rawTitle = typeof task.title === 'string' ? task.title.trim() : '';
+  const rawContent = typeof task.content === 'string' ? task.content.trim() : '';
+  const displayTitle = rawTitle || rawContent || 'Untitled task';
+  const showDescription = Boolean(rawContent && rawContent !== displayTitle);
 
   return (
     <div className={`task-card${isCompleted ? ' task-card--completed' : ''}`}>
       <div className="task-card__info">
         <p className={`task-card__title${isCompleted ? ' task-card__title--done' : ''}`}>
-          {task.content}
+          {displayTitle}
         </p>
+        {showDescription && (
+          <p className="task-card__description">
+            {rawContent}
+          </p>
+        )}
         <div className="task-card__meta">
           <span className="badge badge--due">Due · {dueLabel}</span>
           {typeof task.priority === 'number' && (

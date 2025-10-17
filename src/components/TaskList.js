@@ -54,6 +54,10 @@ function TaskList({ tasks, project, refresh }) {
     await refresh(null, id, 'remove');
   };
 
+  const onUpdate = async (updatedTask) => {
+    await refresh(updatedTask, updatedTask.id, 'update');
+  };
+
   return (
     <div className="task-area">
       <div className="task-header">
@@ -105,7 +109,13 @@ function TaskList({ tasks, project, refresh }) {
       {tasks.length > 0 ? (
         <div className="task-list">
           {tasks.map((task) => (
-            <TaskItem key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} />
+            <TaskItem
+              key={task.id}
+              task={task}
+              onComplete={onComplete}
+              onRemove={onRemove}
+              onUpdate={onUpdate}
+            />
           ))}
         </div>
       ) : (
